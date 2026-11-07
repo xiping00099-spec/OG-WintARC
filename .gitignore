@@ -1,0 +1,10 @@
+.env
+*.db
+*.db-wal
+*.db-shm
+backups/
+__pycache__/
+.pytest_cache/
+node_modules/
+tests/browser/shots/
+tests/browser/package-lock.json

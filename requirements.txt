@@ -1,0 +1,6 @@
+python-telegram-bot[job-queue]>=22.0,<23
+Pillow>=10.1
+openpyxl>=3.1
+python-dotenv>=1.0
+tzdata
+libsql>=0.1.11,<0.2
