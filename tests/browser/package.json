@@ -1,0 +1,8 @@
+{
+  "name": "winter-arc-browser-tests",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Real-browser (headless Chromium) regression tests for the WINTER ARC website. Uses made-up data only.",
+  "scripts": { "demo": "python ../../tests/browser/serve_demo.py", "test": "node e2e.js" },
+  "dependencies": { "@sparticuz/chromium": "^153.0.0", "puppeteer-core": "^25.16.0" }
+}
