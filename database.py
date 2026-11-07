@@ -383,31 +383,34 @@ MIGRATIONS = [(1, _migration_1)]  # append (2, fn), (3, fn)... for future schema
 
 
 def schema_version(conn) -> int:
-    version = 0
-    try:
-        version = int(conn.execute("PRAGMA user_version").fetchone()[0])
-    except (sqlite3.OperationalError, TypeError, ValueError):
-        if not getattr(conn, "is_remote", False):
-            raise
-    if getattr(conn, "is_remote", False):  # remote servers may ignore the pragma: the same number is also kept in bot_settings
+    if getattr(conn, "is_remote", False):
+        # Turso/libSQL does not reliably support SQLite PRAGMA user_version.
+        # Keep the schema version in the application settings table instead.
         try:
-            row = conn.execute("SELECT value FROM bot_settings WHERE key='schema_version'").fetchone()
-            if row:
-                version = max(version, int(row[0]))
+            row = conn.execute(
+                "SELECT value FROM bot_settings WHERE key='schema_version'"
+            ).fetchone()
+            return int(row[0]) if row else 0
         except sqlite3.OperationalError:
-            pass  # table does not exist yet (brand-new database)
-    return version
+            # The table does not exist yet in a brand-new database.
+            return 0
+
+    row = conn.execute("PRAGMA user_version").fetchone()
+    return int(row[0])
 
 
 def _set_schema_version(conn, version):
-    try:
-        conn.execute(f"PRAGMA user_version={int(version)}")
-    except sqlite3.OperationalError:
-        if not getattr(conn, "is_remote", False):
-            raise
+    version = int(version)
     if getattr(conn, "is_remote", False):
-        conn.execute("INSERT INTO bot_settings(key, value) VALUES('schema_version', ?) "
-                     "ON CONFLICT(key) DO UPDATE SET value=excluded.value", (str(int(version)),))
+        # Do not send PRAGMA statements to Turso; store the version in bot_settings.
+        conn.execute(
+            "INSERT INTO bot_settings(key, value) VALUES('schema_version', ?) "
+            "ON CONFLICT(key) DO UPDATE SET value=excluded.value",
+            (str(version),),
+        )
+        return
+
+    conn.execute(f"PRAGMA user_version={version}")
 
 
 def migrate(conn, backup_dir, migrations=None) -> int:

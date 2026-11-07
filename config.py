@@ -148,7 +148,7 @@ def deploy_warnings(cfg: Config) -> list:
     out = []
     if cfg.run_mode in ("all", "bot") and not cfg.admin_ids:
         out.append("ADMIN_IDS is empty, so nobody can use admin features. Send /myid to the bot, put the number in ADMIN_IDS and redeploy.")
-    if cfg.on_render and not cfg.uses_turso and str(cfg.db_path).startswith("/opt/render/project"):
+    if cfg.on_render and str(cfg.db_path).replace("\\", "/").startswith(("/opt/render/project", "C:/opt/render/project")):
         out.append("Render free hosting: the database is stored on a temporary disk and is ERASED on every restart or redeploy, and "
                    "the free service sleeps after ~15 minutes without web visits (the bot is offline while asleep). "
                    "Connect Turso (see TURSO-SETUP.md) to keep the data, or use this for testing only and send /backup often.")
